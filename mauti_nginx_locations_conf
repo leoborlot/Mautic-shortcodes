@@ -1,0 +1,145 @@
+server {
+
+    listen 80;
+
+    listen [::]:80;
+
+
+
+    # HTTP Authentication on
+
+    #include common/acl.conf;
+
+
+
+    server_name mautic.example.com   www.mautic.example.com;
+
+
+
+    access_log /var/log/nginx/mautic.example.com.access.log rt_cache; 
+
+    error_log /var/log/nginx/mautic.example.com.error.log;
+
+
+
+    root /var/www/mautic.example.com/htdocs;
+
+
+
+    index index.php index.html index.htm;
+
+
+
+    charset utf-8;
+
+
+
+    # redirect index.php to root
+
+    rewrite ^/index.php/(.*) /$1  permanent;
+
+  
+
+    # redirect some entire folders
+
+    rewrite ^/(vendor|translations|build)/.* /index.php break;
+
+
+
+    location / {
+
+        try_files $uri /index.php$is_args$args;
+
+    }
+
+    location ~ \.php$ {
+
+        try_files $uri =404;
+
+        include fastcgi_params;
+
+        fastcgi_pass php7;
+
+    }
+
+    
+
+    # Deny everything else in /app folder except Assets folder in bundles
+
+    location ~ /app/bundles/.*/Assets/ {
+
+        allow all;
+
+        access_log off;
+
+    }
+
+    location ~ /app/ { deny all; }
+
+
+
+    # Deny everything else in /addons or /plugins folder except Assets folder in bundles
+
+    #location ~ /(addons|plugins)/.*/Assets/ {
+
+    #    allow all;
+
+    #    access_log off;
+
+    #}
+
+    #location ~ /(addons|plugins)/ { deny all; }
+
+
+
+    # Deny all php files in themes folder
+
+    location ~* ^/themes/(.*)\.php {
+
+        deny all;
+
+    }
+
+
+
+    # Don't log favicon
+
+    location = /favicon.ico {
+
+        log_not_found off;
+
+        access_log off;
+
+    }
+
+
+
+    # Don't log robots
+
+    location = /robots.txt  {
+
+        access_log off;
+
+        log_not_found off;
+
+    }
+
+
+
+    # Deny yml, twig, markdown, init file access
+
+    location ~* /(.*)\.(?:markdown|md|twig|yaml|yml|ht|htaccess|ini)$ {
+
+        deny all;
+
+        access_log off;
+
+        log_not_found off;
+
+    }
+
+
+
+    include /var/www/mautic.example.com/conf/nginx/*.conf;
+
+}
