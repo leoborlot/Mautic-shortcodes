@@ -1,3 +1,5 @@
+# Versão para quem utiliza Mautic com Easyengine V3
+
 server {
 
     listen 80;
